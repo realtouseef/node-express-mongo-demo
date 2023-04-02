@@ -1,25 +1,62 @@
 import { Request, Response } from 'express';
+import { Goals } from '../models/goals.model.js';
 
-const getAllGoals = (req: Request, res: Response) => {
-  res.json({ message: 'Every goals will be here.' });
+const getAllGoals = async (req: Request, res: Response) => {
+  try {
+    const allGoals = await Goals.find();
+    res.status(200).json({ allGoals });
+  } catch (error) {
+    res.status(500).json({ msg: error });
+  }
 };
 
-const createGoal = (req: Request, res: Response) => {
-  res.json(req.body);
+const createGoal = async (req: Request, res: Response) => {
+  try {
+    const goal = await Goals.create(req.body);
+    res.status(201).json({ goal });
+  } catch (error) {
+    res.status(500).json({ msg: error });
+  }
 };
 
-const getGoal = (req: Request, res: Response) => {
-  res.json({ id: req.params.id });
+const getSingleGoal = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const goal = await Goals.findOne({ _id: id });
+    if (!goal) {
+      return res.status(404).json({ msg: `No goal with the id: ${id}` });
+    }
+    res.status(200).json({ goal });
+  } catch (error) {
+    res.status(500).json({ msg: error });
+  }
 };
 
-const updateGoal = (req: Request, res: Response) => {
+const updateGoal = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const goal = await Goals.findByIdAndUpdate({ _id: id }, req.body);
+
+    if (!goal)
+      return res.status(404).json({ msg: `No goal found with the id: ${id}` });
+
+    res.status(200).send({ goal });
+  } catch (error) {
+    res.status(500).send({ msg: error });
+  }
+};
+
+const deleteGoal = async (req: Request, res: Response) => {
   const { id } = req.params;
-  res.json({ message: `Updated Goal ${id}` });
+  try {
+    const goal = await Goals.findOneAndDelete({ _id: id });
+    if (!goal)
+      return res.status(404).json({ msg: `No goal found with the id: ${id}` });
+    res.status(200).json({ goal });
+  } catch (error) {
+    res.status(500).json({ msg: error });
+  }
 };
 
-const deleteGoal = (req: Request, res: Response) => {
-  const { id } = req.params;
-  res.json({ message: `Deleted Goal ${id}` });
-};
-
-export { getAllGoals, createGoal, getGoal, updateGoal, deleteGoal };
+export { getAllGoals, createGoal, getSingleGoal, updateGoal, deleteGoal };
